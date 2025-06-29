@@ -13,12 +13,11 @@ substitutions:
 #Set up ESPHome
 esphome:
   name: watermeter
-  platform: ESP8266
+
+esp8266:
   board: d1_mini
-  
-  project:
-    name: RuntimeError.watermeterkit
-    version: "${watermeterkit_version}"
+  framework:
+    version: recommended
 
 #WiFi Settings
 wifi:
@@ -49,6 +48,7 @@ api:
 
 # Enable over the air updates
 ota:
+  platform: esphome
   password: !secret watermeter_otapassword
 
 # Status LED of ESP

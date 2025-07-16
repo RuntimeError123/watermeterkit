@@ -93,7 +93,28 @@ light:
   - platform: monochromatic
     id: light_led_green
     output: output_led_green
-  
+
+globals:
+  - id: total_water_consumption
+    type: float
+    restore_value: true
+    initial_value: '0.0'
+
+number:
+  - platform: template
+    name: "${friendly_name} Set Total Consumption"
+    id: number_set_total_consumption
+    optimistic: true
+    min_value: 0
+    max_value: 100000
+    step: 0.001
+    unit_of_measurement: "m³"
+    set_action:
+      then:
+        - lambda: |-
+            id(total_water_consumption) = x;
+        - component.update: sensor_total_water_consumption
+
 sensor:
   #Wifi signal
   - platform: wifi_signal
@@ -146,22 +167,24 @@ sensor:
     unit_of_measurement: "L/min"
     timeout: 2min
     accuracy_decimals: 1
-    total:
-      id: sensor_pulse_meter_total
-      name: "${friendly_name} Total Consumption"
-      icon: "mdi:cube-outline"
-      unit_of_measurement: "m³"
-      state_class: total_increasing
-      device_class: water
-      accuracy_decimals: 3
-      filters:
-        - multiply: 0.001
     pin: D5
     on_value:
       then:
+        - lambda: |-
+            id(total_water_consumption) += 0.001;
+        - component.update: sensor_total_water_consumption
         - light.turn_on:
             id: light_led_green
             flash_length: 1s
+  - platform: template
+    id: sensor_total_water_consumption
+    name: "${friendly_name} Total Consumption"
+    unit_of_measurement: "m³"
+    accuracy_decimals: 3
+    device_class: water
+    state_class: total_increasing
+    lambda: |-
+      return id(total_water_consumption);
   - platform: hdc1080
     temperature:
       id: sensor_temperature
